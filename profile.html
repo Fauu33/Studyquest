@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Profil – StudyQuest{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="username">👤 Profil</div>
+    <a href="{{ url_for('main.logout') }}" class="btn-danger-sm">Logout</a>
+  </div>
+
+  <!-- HERO -->
+  <div class="level-card" style="text-align:center;padding:28px 20px">
+    <div class="profile-avatar-big">🧑‍🎓</div>
+    <div style="font-size:22px;font-weight:900;margin:8px 0 2px">{{ current_user.name }}</div>
+    <div style="font-size:14px;opacity:.85">Level {{ level_info.level }} · {{ level_info.title }}</div>
+    <div style="font-size:12px;opacity:.7;margin:12px 0 6px">
+      {{ level_info.prog }} / {{ level_info.needed if level_info.needed > 0 else 'MAX' }} XP
+    </div>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:{{ level_info.pct }}%"></div></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-num">{{ current_user.total_xp }}</div>
+      <div class="stat-label">Total XP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ current_user.total_done }}</div>
+      <div class="stat-label">Quest Selesai</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ current_user.streak }} 🔥</div>
+      <div class="stat-label">Streak Sekarang</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ current_user.best_streak }}</div>
+      <div class="stat-label">Streak Terbaik</div>
+    </div>
+  </div>
+
+  <!-- GANTI NAMA -->
+  <div class="section-title" style="margin-bottom:10px">🏷️ Ganti Nama</div>
+  <form method="POST" action="{{ url_for('main.profile') }}" style="display:flex;gap:8px;margin-bottom:24px">
+    <input type="text" name="name" class="form-input" style="flex:1"
+           placeholder="Nama baru..." value="{{ current_user.name }}" required>
+    <button type="submit" class="btn-add">Simpan</button>
+  </form>
+
+  <!-- INFO AKUN -->
+  <div class="info-row">
+    <span class="info-label">📧 Email</span>
+    <span class="info-val">{{ current_user.email }}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">📅 Bergabung</span>
+    <span class="info-val">{{ current_user.created_at.strftime('%d %b %Y') }}</span>
+  </div>
+</div>
+{% endblock %}

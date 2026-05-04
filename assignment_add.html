@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Tambah Tugas – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.classroom_detail', cls_id=cls.id) }}" class="back-btn">← Kembali</a>
+    <div class="page-title">📝 Beri Tugas Baru</div>
+  </div>
+  <div class="cls-tag-header">🏫 {{ cls.name }}</div>
+  <form method="POST">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">Judul Tugas</label>
+        <input type="text" name="title" class="form-input" placeholder="Contoh: PR Bab 3 Hal.45" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi / Instruksi (opsional)</label>
+        <textarea name="description" class="form-input form-textarea" placeholder="Jelaskan instruksi tugas..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mata Pelajaran</label>
+        <select name="subject" class="form-input">
+          {% for s in subjects %}<option value="{{ s }}" {% if s == cls.subject %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tingkat Kesulitan</label>
+        <div class="diff-selector">
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="easy" checked>
+            <span class="diff-card diff-easy">⚡ Easy<br><small>+10 XP</small></span>
+          </label>
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="medium">
+            <span class="diff-card diff-medium">🔥 Medium<br><small>+25 XP</small></span>
+          </label>
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="hard">
+            <span class="diff-card diff-hard">💀 Hard<br><small>+50 XP</small></span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Batas Waktu (opsional)</label>
+        <input type="date" name="due_date" class="form-input">
+      </div>
+      <button type="submit" class="btn-primary btn-full">📤 Publikasi Tugas!</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Achievements – StudyQuest{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="greeting">Koleksi kamu</div>
+      <div class="username">🏆 Achievements</div>
+    </div>
+    <div class="ach-count-badge">{{ earned_count }} / {{ total_count }}</div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="xp-bar-bg" style="margin-bottom:20px">
+    <div class="xp-bar-fill"
+         style="width:{{ (earned_count / total_count * 100)|round|int if total_count > 0 else 0 }}%;
+                background:linear-gradient(90deg,#F59E0B,#FBBF24)"></div>
+  </div>
+
+  {% for item in ach_list %}
+  <div class="ach-card {% if not item.earned %}ach-locked{% endif %}">
+    <div class="ach-icon {% if item.earned %}ach-icon-earned{% else %}ach-icon-locked{% endif %}">
+      {{ item.ach.icon }}
+    </div>
+    <div class="ach-info">
+      <div class="ach-name">{{ item.ach.name }}</div>
+      <div class="ach-desc">{{ item.ach.description }}</div>
+      {% if item.ach.xp_reward > 0 %}
+      <div class="ach-xp-reward">+{{ item.ach.xp_reward }} XP bonus</div>
+      {% endif %}
+    </div>
+    <div class="ach-status {% if item.earned %}ach-earned{% else %}ach-not-earned{% endif %}">
+      {% if item.earned %}Earned!{% else %}Locked{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

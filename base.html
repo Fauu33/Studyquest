@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}StudyQuest{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<nav class="bottom-nav">
+  <a href="{{ url_for('main.dashboard') }}" class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+    <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+  </a>
+  {% if current_user.is_teacher() %}
+  <a href="{{ url_for('main.create_classroom') }}" class="nav-item {% if request.endpoint == 'main.create_classroom' %}active{% endif %}">
+    <span class="nav-icon">🏫</span><span class="nav-label">Kelas</span>
+  </a>
+  {% else %}
+  <a href="{{ url_for('main.join_classroom') }}" class="nav-item {% if request.endpoint == 'main.join_classroom' %}active{% endif %}">
+    <span class="nav-icon">🔑</span><span class="nav-label">Gabung</span>
+  </a>
+  <a href="{{ url_for('main.add_quest') }}" class="nav-item {% if request.endpoint == 'main.add_quest' %}active{% endif %}">
+    <span class="nav-icon">➕</span><span class="nav-label">Quest</span>
+  </a>
+  {% endif %}
+  <a href="{{ url_for('main.achievements') }}" class="nav-item {% if request.endpoint == 'main.achievements' %}active{% endif %}">
+    <span class="nav-icon">🏆</span><span class="nav-label">Badges</span>
+  </a>
+  <a href="{{ url_for('main.profile') }}" class="nav-item {% if request.endpoint == 'main.profile' %}active{% endif %}">
+    <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+  </a>
+</nav>
+{% endif %}
+<div class="app-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for category, message in messages %}
+      <div class="flash flash-{{ category }}" id="flash-msg">
+        {{ message }}<button onclick="this.parentElement.remove()" class="flash-close">×</button>
+      </div>
+    {% endfor %}{% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

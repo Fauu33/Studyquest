@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Buat Kelas – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.dashboard') }}" class="back-btn">← Kembali</a>
+    <div class="page-title">🏫 Buat Kelas Baru</div>
+  </div>
+  <form method="POST">
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">Nama Kelas</label>
+        <input type="text" name="name" class="form-input" placeholder="Contoh: Kelas 8A Matematika" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mata Pelajaran</label>
+        <select name="subject" class="form-input">
+          {% for s in subjects %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi (opsional)</label>
+        <textarea name="description" class="form-input form-textarea" placeholder="Deskripsi kelas..."></textarea>
+      </div>
+      <button type="submit" class="btn-primary btn-full">🏫 Buat Kelas!</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

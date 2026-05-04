@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ a.title }} – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.classroom_detail', cls_id=cls.id) }}" class="back-btn">← Kembali</a>
+    <div class="page-title">📝 Pengumpulan Tugas</div>
+  </div>
+
+  <div class="assign-detail-card">
+    <div class="assign-title">{{ a.title }}</div>
+    <div class="quest-meta" style="margin-top:8px">
+      <span class="quest-subject subject-{{ a.difficulty }}">{{ a.subject }}</span>
+      <span class="quest-diff diff-{{ a.difficulty }}">
+        {% if a.difficulty == 'easy' %}⚡ Easy{% elif a.difficulty == 'medium' %}🔥 Medium{% else %}💀 Hard{% endif %}
+      </span>
+      <span class="quest-xp">+{{ a.xp_reward }} XP</span>
+      {% if a.due_date %}<span class="due-badge">📅 {{ a.due_date.strftime('%d %b %Y') }}</span>{% endif %}
+    </div>
+    {% if a.description %}
+    <div class="assign-desc">
+      <div class="assign-desc-label">📋 Instruksi:</div>
+      <div class="assign-desc-text">{{ a.description }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">📤 Pengumpulan ({{ submissions|length }})</div>
+  </div>
+
+  {% if submissions %}
+    {% for sub in submissions %}
+    <div class="submission-card status-border-{{ sub.status }}">
+      <div class="sub-header">
+        <div class="sub-student">
+          <span class="sub-avatar">🧑‍🎓</span>
+          <div>
+            <div class="sub-name">{{ sub.student.name }}</div>
+            <div class="sub-date">{{ sub.submitted_at.strftime('%d %b %Y, %H:%M') }}</div>
+          </div>
+        </div>
+        <span class="status-badge status-{{ sub.status }}">
+          {% if sub.status == 'submitted' %}⏳ Menunggu{% elif sub.status == 'approved' %}✅ Disetujui{% else %}🔄 Revisi{% endif %}
+        </span>
+      </div>
+      <div class="sub-file-row">
+        <span class="file-type-icon">
+          {% if sub.file_type == 'image' %}🖼️{% elif sub.file_type == 'video' %}🎬{% else %}📄{% endif %}
+        </span>
+        <a href="{{ url_for('main.uploaded_file', filename=sub.file_path) }}" target="_blank" class="file-link">
+          {{ sub.original_name }}
+        </a>
+      </div>
+      {% if sub.note %}<div class="sub-note">💬 "{{ sub.note }}"</div>{% endif %}
+      {% if sub.status == 'submitted' %}
+      <div class="sub-actions">
+        <form method="POST" action="{{ url_for('main.review_submission', sub_id=sub.id) }}" style="display:inline">
+          <input type="hidden" name="action" value="approved">
+          <button type="submit" class="q-btn q-done review-btn">✅ Setujui</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.review_submission', sub_id=sub.id) }}" style="display:inline">
+          <input type="hidden" name="action" value="revision">
+          <button type="submit" class="q-btn q-skip review-btn">🔄 Minta Revisi</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-emoji">📭</div>
+      <div>Belum ada yang mengumpulkan</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ cls.name }} – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.dashboard') }}" class="back-btn">← Kembali</a>
+    <div class="page-title">🏫 {{ cls.name }}</div>
+  </div>
+
+  <div class="cls-info-card">
+    <div class="cls-info-row">
+      <span class="cls-subject-badge">{{ cls.subject }}</span>
+      <span class="cls-code-display">Kode: <strong>{{ cls.code }}</strong></span>
+    </div>
+    {% if cls.description %}<p class="cls-info-desc">{{ cls.description }}</p>{% endif %}
+    <div class="cls-info-stats">
+      <span>👥 {{ members|length }} murid</span>
+      <span>📝 {{ assignments|length }} tugas</span>
+    </div>
+    {% if current_user.is_teacher() %}
+    <div class="code-share">
+      <span class="code-share-label">Bagikan kode ini ke murid:</span>
+      <span class="code-share-value" id="shareCode">{{ cls.code }}</span>
+      <button onclick="navigator.clipboard.writeText('{{ cls.code }}');this.textContent='✅ Disalin!';setTimeout(()=>this.textContent='📋 Salin',1500)" class="btn-copy">📋 Salin</button>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">📝 Daftar Tugas</div>
+    {% if current_user.is_teacher() %}
+    <a href="{{ url_for('main.add_assignment', cls_id=cls.id) }}" class="btn-add">+ Beri Tugas</a>
+    {% endif %}
+  </div>
+
+  {% if assignments %}
+    {% for a in assignments %}
+    {% set my_sub = sub_map.get(a.id) if not current_user.is_teacher() else None %}
+    {% set sub_count = assign_sub_counts.get(a.id, 0) if current_user.is_teacher() else 0 %}
+    <a href="{{ url_for('main.assignment_detail', assign_id=a.id) }}" class="quest-card assign-card {% if my_sub %}completed{% endif %}">
+      <div class="quest-left">
+        <div class="quest-title">{% if my_sub %}✅ {% endif %}{{ a.title }}</div>
+        <div class="quest-meta">
+          <span class="quest-subject subject-{{ a.difficulty }}">{{ a.subject }}</span>
+          <span class="quest-diff diff-{{ a.difficulty }}">
+            {% if a.difficulty == 'easy' %}⚡ Easy{% elif a.difficulty == 'medium' %}🔥 Medium{% else %}💀 Hard{% endif %}
+          </span>
+          <span class="quest-xp">+{{ a.xp_reward }} XP</span>
+          {% if a.due_date %}<span class="due-badge {% if a.is_overdue() %}overdue{% endif %}">📅 {{ a.due_date.strftime('%d %b %Y') }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="assign-arrow">
+        {% if current_user.is_teacher() %}
+          <span class="sub-count-badge">{{ sub_count }} pengumpulan</span>
+        {% elif my_sub %}
+          <span class="status-badge status-{{ my_sub.status }}">
+            {% if my_sub.status == 'submitted' %}Dikumpulkan{% elif my_sub.status == 'approved' %}✅ Disetujui{% else %}🔄 Revisi{% endif %}
+          </span>
+        {% else %}
+          <span class="status-badge status-pending">Belum Dikumpul</span>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-emoji">📭</div>
+      <div>Belum ada tugas</div>
+      <div class="empty-sub">{% if current_user.is_teacher() %}Klik "+ Beri Tugas" untuk menambah!{% else %}Tunggu guru menambah tugas ya!{% endif %}</div>
+    </div>
+  {% endif %}
+
+  {% if current_user.is_teacher() %}
+  <div class="section-head" style="margin-top:20px">
+    <div class="section-title">👥 Daftar Murid ({{ members|length }})</div>
+  </div>
+  {% if members %}
+    {% for m in members %}
+    <div class="member-card">
+      <span class="member-avatar">🧑‍🎓</span>
+      <div>
+        <div class="member-name">{{ m.user.name }}</div>
+        <div class="member-email">{{ m.user.email }}</div>
+      </div>
+      <div class="member-level">Lv.{{ m.user.level }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state"><div class="empty-emoji">👤</div><div>Belum ada murid bergabung</div></div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

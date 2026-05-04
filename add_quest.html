@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Tambah Quest – StudyQuest{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div class="username">✨ Quest Baru</div>
+    <a href="{{ url_for('main.dashboard') }}" class="btn-ghost">← Kembali</a>
+  </div>
+
+  <form method="POST" action="{{ url_for('main.add_quest') }}">
+
+    <div class="form-card">
+      <div class="form-group">
+        <label class="form-label">📝 Nama Quest</label>
+        <input type="text" name="title" class="form-input"
+               placeholder="Contoh: Belajar Bab 3 Matematika..." required maxlength="200">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">📚 Mata Pelajaran</label>
+        <select name="subject" class="form-select">
+          {% for s in subjects %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">⚔️ Difficulty</label>
+        <div class="diff-grid">
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="easy" checked hidden>
+            <div class="diff-card diff-easy-card">
+              <div class="diff-icon">⚡</div>
+              <div class="diff-name">Easy</div>
+              <div class="diff-xp">+10 XP</div>
+            </div>
+          </label>
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="medium" hidden>
+            <div class="diff-card diff-medium-card">
+              <div class="diff-icon">🔥</div>
+              <div class="diff-name">Medium</div>
+              <div class="diff-xp">+25 XP</div>
+            </div>
+          </label>
+          <label class="diff-opt">
+            <input type="radio" name="difficulty" value="hard" hidden>
+            <div class="diff-card diff-hard-card">
+              <div class="diff-icon">💀</div>
+              <div class="diff-name">Hard</div>
+              <div class="diff-xp">+50 XP</div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary btn-full">🎯 Tambah Quest!</button>
+    <a href="{{ url_for('main.dashboard') }}" class="btn-cancel-link">Batal</a>
+
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Highlight diff card yang dipilih
+document.querySelectorAll('.diff-opt input[type=radio]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('selected'));
+    if (radio.checked) radio.nextElementSibling.classList.add('selected');
+  });
+});
+// Tandai easy sebagai default
+document.querySelector('.diff-opt input[value=easy]').nextElementSibling.classList.add('selected');
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Gabung Kelas – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.dashboard') }}" class="back-btn">← Kembali</a>
+    <div class="page-title">🔑 Gabung Kelas</div>
+  </div>
+  <div class="form-card">
+    <div class="join-illustration">🏫</div>
+    <p class="join-hint">Masukkan kode kelas yang diberikan gurumu</p>
+    <form method="POST">
+      <div class="form-group">
+        <label class="form-label">Kode Kelas</label>
+        <input type="text" name="code" class="form-input code-input" placeholder="Contoh: A1B2C3D4"
+               maxlength="8" style="text-transform:uppercase;letter-spacing:4px;font-size:22px;text-align:center" required>
+      </div>
+      <button type="submit" class="btn-primary btn-full">🔑 Gabung Sekarang!</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

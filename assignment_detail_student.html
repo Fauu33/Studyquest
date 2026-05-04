@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ a.title }} – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <a href="{{ url_for('main.classroom_detail', cls_id=cls.id) }}" class="back-btn">← Kembali</a>
+    <div class="page-title">📝 Detail Tugas</div>
+  </div>
+
+  <div class="assign-detail-card">
+    <div class="assign-title">{{ a.title }}</div>
+    <div class="quest-meta" style="margin-top:8px">
+      <span class="quest-subject subject-{{ a.difficulty }}">{{ a.subject }}</span>
+      <span class="quest-diff diff-{{ a.difficulty }}">
+        {% if a.difficulty == 'easy' %}⚡ Easy{% elif a.difficulty == 'medium' %}🔥 Medium{% else %}💀 Hard{% endif %}
+      </span>
+      <span class="quest-xp">+{{ a.xp_reward }} XP</span>
+    </div>
+    {% if a.due_date %}
+    <div class="due-info {% if a.is_overdue() and not my_sub %}overdue-text{% endif %}">
+      📅 Batas waktu: <strong>{{ a.due_date.strftime('%d %B %Y') }}</strong>
+      {% if a.is_overdue() and not my_sub %}<span class="overdue-badge">Terlambat!</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if a.description %}
+    <div class="assign-desc">
+      <div class="assign-desc-label">📋 Instruksi:</div>
+      <div class="assign-desc-text">{{ a.description }}</div>
+    </div>
+    {% endif %}
+    <div class="assign-teacher">👩‍🏫 Oleh: {{ a.creator.name }} · 🏫 {{ cls.name }}</div>
+  </div>
+
+  {% if my_sub %}
+  <div class="submission-result">
+    <div class="sub-result-header">
+      <span class="sub-result-icon">
+        {% if my_sub.status == 'approved' %}✅{% elif my_sub.status == 'revision' %}🔄{% else %}📤{% endif %}
+      </span>
+      <div>
+        <div class="sub-result-title">
+          {% if my_sub.status == 'approved' %}Tugas Disetujui!
+          {% elif my_sub.status == 'revision' %}Diminta Revisi
+          {% else %}Menunggu Penilaian{% endif %}
+        </div>
+        <div class="sub-result-date">Dikumpulkan: {{ my_sub.submitted_at.strftime('%d %b %Y, %H:%M') }}</div>
+      </div>
+    </div>
+    <div class="sub-file-info">
+      <span class="file-type-icon">
+        {% if my_sub.file_type == 'image' %}🖼️{% elif my_sub.file_type == 'video' %}🎬{% else %}📄{% endif %}
+      </span>
+      <a href="{{ url_for('main.uploaded_file', filename=my_sub.file_path) }}" target="_blank" class="file-link">
+        {{ my_sub.original_name }}
+      </a>
+    </div>
+    {% if my_sub.note %}<div class="sub-note">💬 "{{ my_sub.note }}"</div>{% endif %}
+  </div>
+  {% else %}
+  <div class="upload-section">
+    <div class="upload-title">📤 Kumpulkan Tugas</div>
+    <form method="POST" action="{{ url_for('main.submit_assignment', assign_id=a.id) }}"
+          enctype="multipart/form-data" id="submitForm">
+      <div class="upload-drop-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon" id="uploadIcon">📎</div>
+        <div class="upload-text" id="uploadText">Klik atau drag file di sini</div>
+        <div class="upload-hint">Gambar, Video, atau Dokumen (maks. 50MB)</div>
+        <input type="file" name="submission_file" id="fileInput" style="display:none"
+               accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip" required>
+      </div>
+      <div class="file-preview hidden" id="filePreview">
+        <span id="previewIcon">📄</span>
+        <span id="previewName">filename.pdf</span>
+        <button type="button" onclick="clearFile()" class="clear-file">×</button>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Catatan (opsional)</label>
+        <textarea name="note" class="form-input form-textarea" placeholder="Tambahkan catatan untuk guru..."></textarea>
+      </div>
+      <button type="submit" class="btn-primary btn-full" id="submitBtn" disabled>
+        📤 Kumpulkan Tugas (+{{ a.xp_reward }} XP)
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+{% block scripts %}
+<script>
+const fileInput = document.getElementById('fileInput');
+const dropArea = document.getElementById('dropArea');
+const filePreview = document.getElementById('filePreview');
+const submitBtn = document.getElementById('submitBtn');
+
+if (fileInput) {
+  fileInput.addEventListener('change', handleFile);
+  dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('drag-over'); });
+  dropArea.addEventListener('dragleave', () => dropArea.classList.remove('drag-over'));
+  dropArea.addEventListener('drop', e => {
+    e.preventDefault(); dropArea.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      handleFile();
+    }
+  });
+}
+
+function handleFile() {
+  const file = fileInput.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const images = ['png','jpg','jpeg','gif','webp'];
+  const videos = ['mp4','mov','avi','mkv','webm'];
+  let icon = '📄';
+  if (images.includes(ext)) icon = '🖼️';
+  else if (videos.includes(ext)) icon = '🎬';
+  document.getElementById('previewIcon').textContent = icon;
+  document.getElementById('previewName').textContent = file.name;
+  dropArea.classList.add('hidden');
+  filePreview.classList.remove('hidden');
+  submitBtn.disabled = false;
+}
+
+function clearFile() {
+  fileInput.value = '';
+  filePreview.classList.add('hidden');
+  dropArea.classList.remove('hidden');
+  submitBtn.disabled = true;
+}
+
+// Show loading on submit
+document.getElementById('submitForm')?.addEventListener('submit', () => {
+  submitBtn.textContent = '⏳ Mengupload...';
+  submitBtn.disabled = true;
+});
+</script>
+{% endblock %}
+{% endblock %}

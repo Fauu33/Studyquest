@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="greeting">Selamat belajar! 👋</div>
+      <div class="username">{{ current_user.name }}</div>
+    </div>
+    <a href="{{ url_for('main.profile') }}" class="avatar-btn">🧑‍🎓</a>
+  </div>
+
+  <div class="level-card">
+    <div class="level-row">
+      <div class="level-badge">⚡ Level {{ level_info.level }}</div>
+      <div class="xp-text">{{ level_info.prog }} / {{ level_info.needed if level_info.needed > 0 else 'MAX' }} XP</div>
+    </div>
+    <div class="level-title">{{ level_info.title }}</div>
+    <div class="xp-bar-bg"><div class="xp-bar-fill" style="width: {{ level_info.pct }}%"></div></div>
+  </div>
+
+  <div class="streak-card">
+    <div class="streak-fire">🔥</div>
+    <div>
+      <div class="streak-row">
+        <span class="streak-num">{{ current_user.streak }}</span>
+        <span class="streak-label">hari streak</span>
+      </div>
+      <div class="streak-sub">
+        {% if current_user.streak == 0 %}Mulai streak-mu hari ini!
+        {% elif current_user.streak < 3 %}{{ current_user.streak }} hari! Terus semangat!
+        {% else %}{{ current_user.streak }} hari berturut-turut! 🔥{% endif %}
+      </div>
+    </div>
+    <div class="streak-best">
+      <div class="streak-best-label">Terbaik</div>
+      <div class="streak-best-num">{{ current_user.best_streak }}</div>
+    </div>
+  </div>
+
+  <!-- ASSIGNMENTS FROM CLASSROOMS -->
+  {% if assignments %}
+  <div class="section-head">
+    <div class="section-title">📋 Tugas dari Guru</div>
+  </div>
+  {% for a in assignments %}
+  {% set my_sub = sub_map.get(a.id) %}
+  <a href="{{ url_for('main.assignment_detail', assign_id=a.id) }}" class="quest-card {% if my_sub %}completed{% endif %} assign-card">
+    <div class="quest-left">
+      <div class="quest-title">
+        {% if my_sub %}✅ {% endif %}{{ a.title }}
+      </div>
+      <div class="quest-meta">
+        <span class="quest-subject subject-{{ a.difficulty }}">{{ a.subject }}</span>
+        <span class="quest-diff diff-{{ a.difficulty }}">
+          {% if a.difficulty == 'easy' %}⚡ Easy{% elif a.difficulty == 'medium' %}🔥 Medium{% else %}💀 Hard{% endif %}
+        </span>
+        <span class="quest-xp">+{{ a.xp_reward }} XP</span>
+        {% if a.due_date %}<span class="due-badge {% if a.is_overdue() and not my_sub %}overdue{% endif %}">
+          📅 {{ a.due_date.strftime('%d %b') }}
+        </span>{% endif %}
+      </div>
+      <div class="cls-tag">🏫 {{ a.classroom.name }}</div>
+    </div>
+    <div class="assign-arrow">
+      {% if my_sub %}
+        <span class="status-badge status-{{ my_sub.status }}">
+          {% if my_sub.status == 'submitted' %}Dikumpulkan
+          {% elif my_sub.status == 'approved' %}✅ Disetujui
+          {% else %}🔄 Revisi{% endif %}
+        </span>
+      {% else %}
+        <span class="status-badge status-pending">Belum Dikumpul</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+  {% endif %}
+
+  <!-- PERSONAL QUESTS -->
+  <div class="section-head">
+    <div class="section-title">📚 Quest Pribadi Hari Ini</div>
+    <a href="{{ url_for('main.add_quest') }}" class="btn-add">+ Tambah</a>
+  </div>
+
+  {% if quests %}
+    {% for quest in quests %}
+    <div class="quest-card {% if quest.status == 'completed' %}completed{% elif quest.status == 'skipped' %}skipped{% endif %}"
+         id="quest-{{ quest.id }}">
+      <div class="quest-left">
+        <div class="quest-title">
+          {% if quest.status == 'completed' %}✅ {% elif quest.status == 'skipped' %}❌ {% endif %}{{ quest.title }}
+        </div>
+        <div class="quest-meta">
+          <span class="quest-subject subject-{{ quest.difficulty }}">{{ quest.subject }}</span>
+          <span class="quest-diff diff-{{ quest.difficulty }}">
+            {% if quest.difficulty == 'easy' %}⚡ Easy{% elif quest.difficulty == 'medium' %}🔥 Medium{% else %}💀 Hard{% endif %}
+          </span>
+          <span class="quest-xp">+{{ quest.xp_reward }} XP</span>
+        </div>
+      </div>
+      {% if quest.status == 'pending' %}
+      <div class="quest-actions">
+        <form method="POST" action="{{ url_for('main.complete_quest', quest_id=quest.id) }}"
+              class="quest-form" data-quest-id="{{ quest.id }}" data-xp="{{ quest.xp_reward }}">
+          <button type="submit" class="q-btn q-done" title="Selesai">✅</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.skip_quest', quest_id=quest.id) }}">
+          <button type="submit" class="q-btn q-skip" title="Lewati">❌</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-emoji">📭</div>
+      <div>Belum ada quest hari ini</div>
+      <div class="empty-sub">Klik "+ Tambah" untuk mulai!</div>
+    </div>
+  {% endif %}
+</div>
+
+<div class="xp-popup hidden" id="xp-popup">
+  <div class="popup-emoji" id="popup-emoji">⭐</div>
+  <div class="popup-xp" id="popup-xp">+25 XP</div>
+  <div class="popup-label" id="popup-label">Quest Selesai!</div>
+</div>
+<div class="levelup-popup hidden" id="levelup-popup">
+  <div style="font-size:48px">🎉</div>
+  <div class="lu-title">LEVEL UP!</div>
+  <div class="lu-num" id="lu-num">2</div>
+  <div class="lu-subtitle" id="lu-subtitle">Penjelajah Muda</div>
+</div>
+<div class="overlay hidden" id="overlay"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.quest-form').forEach(form => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const questId = form.dataset.questId;
+    const res = await fetch(form.action, {method:'POST', headers:{'X-Requested-With':'XMLHttpRequest'}});
+    if (!res.ok) { form.submit(); return; }
+    const data = await res.json();
+    showXpPopup(data);
+    updateQuestCard(questId);
+    updateLevelBar(data.level_info, data.total_xp);
+    updateStreak(data.streak);
+  });
+});
+function updateQuestCard(id) {
+  const card = document.getElementById('quest-'+id);
+  if (!card) return;
+  card.classList.add('completed');
+  const title = card.querySelector('.quest-title');
+  if (title) title.textContent = '✅ ' + title.textContent.trim();
+  const actions = card.querySelector('.quest-actions');
+  if (actions) actions.remove();
+}
+function updateLevelBar(info, totalXp) {
+  const bar = document.querySelector('.xp-bar-fill');
+  if (bar) bar.style.width = info.pct + '%';
+  const xpText = document.querySelector('.xp-text');
+  if (xpText) xpText.textContent = info.prog + ' / ' + (info.needed > 0 ? info.needed : 'MAX') + ' XP';
+  const badge = document.querySelector('.level-badge');
+  if (badge) badge.textContent = '⚡ Level ' + info.level;
+  const title = document.querySelector('.level-title');
+  if (title) title.textContent = info.title;
+}
+function updateStreak(streak) {
+  const el = document.querySelector('.streak-num');
+  if (el) el.textContent = streak;
+}
+function showXpPopup(data) {
+  const ov = document.getElementById('overlay');
+  const pop = document.getElementById('xp-popup');
+  const lu = document.getElementById('levelup-popup');
+  document.getElementById('popup-emoji').textContent = data.xp_gained >= 50 ? '🔥' : data.xp_gained >= 25 ? '⭐' : '✨';
+  document.getElementById('popup-xp').textContent = '+' + data.xp_gained + ' XP';
+  document.getElementById('popup-label').textContent = 'Quest Selesai! 🎉';
+  ov.classList.remove('hidden'); ov.classList.add('show');
+  pop.classList.remove('hidden'); pop.classList.add('show');
+  spawnSparkles();
+  if (data.leveled_up) {
+    document.getElementById('lu-num').textContent = data.new_level;
+    document.getElementById('lu-subtitle').textContent = data.new_level_title;
+    setTimeout(() => { pop.classList.remove('show'); pop.classList.add('hidden'); lu.classList.remove('hidden'); lu.classList.add('show'); }, 900);
+    setTimeout(() => { lu.classList.remove('show'); lu.classList.add('hidden'); ov.classList.remove('show'); ov.classList.add('hidden'); }, 2800);
+  } else {
+    setTimeout(() => { pop.classList.remove('show'); pop.classList.add('hidden'); ov.classList.remove('show'); ov.classList.add('hidden'); }, 1600);
+  }
+}
+function spawnSparkles() {
+  const emojis = ['⭐','✨','🌟','💫','🎉'];
+  for (let i = 0; i < 7; i++) {
+    setTimeout(() => {
+      const s = document.createElement('div'); s.className = 'sparkle';
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.left = (15 + Math.random()*70) + '%'; s.style.top = (20 + Math.random()*50) + '%';
+      document.body.appendChild(s); setTimeout(() => s.remove(), 1000);
+    }, i*80);
+  }
+}
+</script>
+{% endblock %}

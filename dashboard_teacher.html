@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Guru – StudyQuest{% endblock %}
+{% block content %}
+<div class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="greeting">Halo, Guru! 👩‍🏫</div>
+      <div class="username">{{ current_user.name }}</div>
+    </div>
+    <a href="{{ url_for('main.profile') }}" class="avatar-btn">👩‍🏫</a>
+  </div>
+
+  {% set total_assignments = namespace(count=0) %}
+  {% for cls in classrooms %}
+    {% set total_assignments.count = total_assignments.count + cls.assignments|length %}
+  {% endfor %}
+
+  <div class="teacher-stats-row">
+    <div class="tstat-card">
+      <div class="tstat-icon">🏫</div>
+      <div class="tstat-num">{{ classrooms|length }}</div>
+      <div class="tstat-label">Kelas Aktif</div>
+    </div>
+    <div class="tstat-card">
+      <div class="tstat-icon">📝</div>
+      <div class="tstat-num">{{ total_assignments.count }}</div>
+      <div class="tstat-label">Total Tugas</div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <div class="section-title">🏫 Kelas Saya</div>
+    <a href="{{ url_for('main.create_classroom') }}" class="btn-add">+ Buat Kelas</a>
+  </div>
+
+  {% if classrooms %}
+    {% for cls in classrooms %}
+    <a href="{{ url_for('main.classroom_detail', cls_id=cls.id) }}" class="classroom-card">
+      <div class="cls-left">
+        <div class="cls-name">{{ cls.name }}</div>
+        <div class="cls-meta">
+          <span class="cls-subject">{{ cls.subject }}</span>
+          <span class="cls-count">👥 {{ cls.get_student_count() }} murid</span>
+          <span class="cls-count">📝 {{ cls.assignments|length }} tugas</span>
+        </div>
+        {% if cls.description %}<div class="cls-desc">{{ cls.description }}</div>{% endif %}
+      </div>
+      <div class="cls-code-badge">
+        <div class="cls-code-label">Kode Kelas</div>
+        <div class="cls-code">{{ cls.code }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-emoji">🏫</div>
+      <div>Belum ada kelas</div>
+      <div class="empty-sub">Klik "+ Buat Kelas" untuk mulai mengajar!</div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
